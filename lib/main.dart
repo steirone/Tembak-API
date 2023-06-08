@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -113,6 +114,13 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<void> _launchUrl() async {
+    final Uri _url = Uri.parse('https://sisfo.poltek-gt.ac.id/app/');
+    if (!await launchUrl(_url)) {
+      throw Exception('Could not launch $_url');
+    }
+  }
+
   void sendData(test) async {
     var url = Uri.parse('https://sisfo.poltek-gt.ac.id/student/insert_absen');
 
@@ -218,19 +226,21 @@ class _MyHomePageState extends State<MyHomePage> {
                       sendData('Simpan');
                     },
                     child: Text("Masuk")),
-                ElevatedButton(onPressed: () {
-                  sendData('PULANG');
-                }, child: Text("Pulang"))
+                ElevatedButton(
+                    onPressed: () {
+                      sendData('PULANG');
+                    },
+                    child: Text("Pulang"))
               ],
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Mock Login',
+        onPressed: _launchUrl,
+        tooltip: 'Cek Absen',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
