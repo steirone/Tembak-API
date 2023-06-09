@@ -55,7 +55,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Lokasi? lokasiOption;
 
   List<Lokasi> loptions = [
-    Lokasi("Gpay Digital Asia", "106.818421%2C+-6.210845", "27632.49")
+    Lokasi("Gpay Digital Asia", "106.818421, -6.210845", "27632.49"),
+    Lokasi("Rumah", "107.319700, -6.3505300", "83903.18"),
   ];
 
   List<Mahasiswa> options = [
@@ -124,6 +125,18 @@ class _MyHomePageState extends State<MyHomePage> {
   void sendData(test) async {
     var url = Uri.parse('https://sisfo.poltek-gt.ac.id/student/insert_absen');
 
+    DateTime currentTime = DateTime.now();
+    int currentHour = currentTime.hour;
+
+    if (!(currentHour >= 16 && currentHour <= 23)) {
+      if (lokasiOption?.nama == "Rumah") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Jam 4-12 Malem only')),
+        );
+        return;
+      }
+    }
+
     //PULANG
     //H
     var data = {
@@ -138,12 +151,15 @@ class _MyHomePageState extends State<MyHomePage> {
       'func': test,
     };
 
-    var response = await http.post(url, body: data);
-
-    if (response.statusCode == 200) {
-      print(response.statusCode);
-    } else {
-      print('Request failed with status: ${response.statusCode}');
+    try {
+      var response = await http.post(url, body: data);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Success')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed')),
+      );
     }
   }
 
@@ -153,93 +169,111 @@ class _MyHomePageState extends State<MyHomePage> {
     // lokasiOption = loptions[0];
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("Tembak API SISFO"),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Row(
-              children: [
-                Text("NIM"),
-                Container(
-                  width: 350,
-                  child: DropdownButton<Mahasiswa>(
-                    value: selectedOption,
-                    onChanged: (Mahasiswa? newValue) {
-                      setState(() {
-                        selectedOption = newValue;
-                      });
-                    },
-                    items: options.map<DropdownMenuItem<Mahasiswa>>(
-                      (Mahasiswa option) {
-                        return DropdownMenuItem<Mahasiswa>(
-                          value: option,
-                          child: Text(option.name),
-                        );
-                      },
-                    ).toList(),
-                  ),
+        child: Container(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("NIM"),
+                    Container(
+                      width: 260,
+                      child: DropdownButton<Mahasiswa>(
+                        value: selectedOption,
+                        onChanged: (Mahasiswa? newValue) {
+                          setState(() {
+                            selectedOption = newValue;
+                          });
+                        },
+                        items: options.map<DropdownMenuItem<Mahasiswa>>(
+                          (Mahasiswa option) {
+                            return DropdownMenuItem<Mahasiswa>(
+                              value: option,
+                              child: Text(option.name),
+                            );
+                          },
+                        ).toList(),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                Text("Lokasi"),
-                Container(
-                  width: 350,
-                  child: DropdownButton<Lokasi>(
-                    value: lokasiOption,
-                    onChanged: (Lokasi? newValue) {
-                      setState(() {
-                        lokasiOption = newValue;
-                      });
-                    },
-                    items: loptions.map<DropdownMenuItem<Lokasi>>(
-                      (Lokasi option) {
-                        return DropdownMenuItem<Lokasi>(
-                          value: option,
-                          child: Text(option.nama),
-                        );
-                      },
-                    ).toList(),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Lokasi"),
+                    Container(
+                      width: 150,
+                      child: DropdownButton<Lokasi>(
+                        value: lokasiOption,
+                        onChanged: (Lokasi? newValue) {
+                          setState(() {
+                            lokasiOption = newValue;
+                          });
+                        },
+                        items: loptions.map<DropdownMenuItem<Lokasi>>(
+                          (Lokasi option) {
+                            return DropdownMenuItem<Lokasi>(
+                              value: option,
+                              child: Text(option.nama),
+                            );
+                          },
+                        ).toList(),
+                      ),
+                    ),
+                    Text("Tanggal"),
+                    Container(
+                      width: 50,
+                      child: IconButton(
+                        icon: Icon(Icons.date_range),
+                        onPressed: () => _selectDate(context),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                Text("Tanggal"),
-                Container(
-                  width: 350,
-                  child: ElevatedButton(
-                    onPressed: () => _selectDate(context),
-                    child: Text('Select Date'),
-                  ),
+                SizedBox(
+                  height: 20,
                 ),
-              ],
-            ),
-            Row(
-              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          sendData('Simpan');
+                        },
+                        child: Text("Masuk")),
+                    ElevatedButton(
+                        onPressed: () {
+                          sendData('PULANG');
+                        },
+                        child: Text("Pulang"))
+                  ],
+                ),
+                SizedBox(
+                  height: 20,
+                ),
                 ElevatedButton(
                     onPressed: () {
-                      sendData('Simpan');
+                      setState(() {
+                        selectedOption = options[20];
+                        lokasiOption = loptions[0];
+                      });
                     },
-                    child: Text("Masuk")),
-                ElevatedButton(
-                    onPressed: () {
-                      sendData('PULANG');
-                    },
-                    child: Text("Pulang"))
+                    child: Text("One Tap"))
               ],
             ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _launchUrl,
         tooltip: 'Cek Absen',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.table_chart),
       ),
     );
   }
